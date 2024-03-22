@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ba34ed4b-2360-463d-bcc5-3d32196e8b56" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ChatGPT_HKBU.py" beforeDir="false" afterPath="$PROJECT_DIR$/ChatGPT_HKBU.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +40,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.ChatGPT_HKBU (1)">
+  <component name="RunManager">
     <configuration name="ChatGPT_HKBU (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="franBot" />
       <option name="ENV_FILES" value="" />
@@ -124,6 +123,7 @@
       <workItem from="1711086001472" duration="78000" />
       <workItem from="1711086779257" duration="931000" />
       <workItem from="1711093045915" duration="2667000" />
+      <workItem from="1711114576627" duration="676000" />
     </task>
     <servers />
   </component>
@@ -135,6 +135,6 @@
     <SUITE FILE_PATH="coverage/ChatGPT_HKBU_py$chatbot.coverage" NAME="chatbot Coverage Results" MODIFIED="1710921875921" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/chatbot_py$ChatGPT_HKBU.coverage" NAME="ChatGPT_HKBU Coverage Results" MODIFIED="1710923049858" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Downloads/franBot-main" />
     <SUITE FILE_PATH="coverage/franBot$chatbot.coverage" NAME="chatbot Coverage Results" MODIFIED="1710904450653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/chatbot_py$chatbot.coverage" NAME="chatbot Coverage Results" MODIFIED="1710919366836" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/chatbot_py$chatbot.coverage" NAME="chatbot Coverage Results" MODIFIED="1711114629270" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
