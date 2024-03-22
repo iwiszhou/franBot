@@ -1,7 +1,8 @@
 version: '3'
 services:
   franbot:
-    image: franbot-franbot
+    build: .
+    #image: franbot-franbot
     environment: 
       - TELEGRAM_ACCESS_TOKEN=6636194574:AAGNDuSkuARLbhNwapdsA8RsKg0_PpwMYSs
       - REDIS_HOST=redis
