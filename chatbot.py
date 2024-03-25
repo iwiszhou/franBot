@@ -1,119 +1,195 @@
+# how to run locally?
+# ngrok http 8000
+'''
+ngrok                                                                                                                         (Ctrl+C to quit)
+                                                                                                                                              
+K8s Gateway API support available now: https://ngrok.com/r/k8sgb                                                                              
+                                                                                                                                              
+Session Status                online                                                                                                          
+Account                       Iwis Zhou (Plan: Free)                                                                                          
+Version                       3.8.0                                                                                                           
+Region                        Asia Pacific (ap)                                                                                               
+Web Interface                 http://127.0.0.1:4040                                                                                           
+Forwarding                    https://e3e3-182-239-120-87.ngrok-free.app -> http://localhost:8000                                             
+                                                                                                                                              
+Connections                   ttl     opn     rt1     rt5     p50     p90                                                                     
+                              0       0       0.00    0.00    0.00    0.00     
+'''
+# replace the URL with the Forwarding url
+
+
+ADMIN_CHAT_ID = 6795865766
+PORT = 8000
+TOKEN = "6485083231:AAEImiSj_-RdbW44DpwoqnXaFHQDDNdLgj4"  # nosec B105
+URL = "https://3090-182-239-120-87.ngrok-free.app"
+
 #!/usr/bin/env python
-# coding: utf-8
-import os
+# This program is dedicated to the public domain under the CC0 license.
+# pylint: disable=import-error,unused-argument
+"""
+Simple example of a bot that uses a custom webhook setup and handles custom updates.
+For the custom webhook setup, the libraries `flask`, `asgiref` and `uvicorn` are used. Please
+install them as `pip install flask[async]~=2.3.2 uvicorn~=0.23.2 asgiref~=3.7.2`.
+Note that any other `asyncio` based web server framework can be used for a custom webhook setup
+just as well.
 
-# In[ ]:
-
-
-#from telegram import Update
-from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, CallbackContext)
-import configparser
+Usage:
+Set bot Token, URL, admin CHAT_ID and PORT after the imports.
+You may also need to change the `listen` value in the uvicorn configuration to match your setup.
+Press Ctrl-C on the command line or send a signal to the process to stop the bot.
+"""
+import asyncio
+import html
 import logging
-import redis
-from ChatGPT_HKBU import HKBU_ChatGPT
+from dataclasses import dataclass
+from http import HTTPStatus
 
-global redis1
+import uvicorn
+from asgiref.wsgi import WsgiToAsgi
+from flask import Flask, Response, abort, make_response, request
 
-def main():
-    # Load your token and create an Updater for your Bot
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
-    #updater = Updater(token=(os.environ['TELEGRAM_ACCESS_TOKEN']), use_context=True)
-    dispatcher = updater.dispatcher
-    global redis1
-    redis1 = redis.Redis(host=(config['REDIS']['HOST']),
-    password=(config['REDIS']['PASSWORD']),
-    port=(config['REDIS']['REDISPORT']))
-    #redis1 = redis.Redis(host=(os.environ['REDIS_HOST']),
-                         #password=(os.environ['REDIS_PASSWORD']),
-                         #port=(os.environ['REDIS_REDISPORT']))
-    
+from telegram import Update
+from telegram.constants import ParseMode
+from telegram.ext import (
+    Application,
+    CallbackContext,
+    CommandHandler,
+    ContextTypes,
+    ExtBot,
+    TypeHandler,
+)
 
-    # You can set this logging module, so you will know when
-    # and why things do not work as expected Meanwhile, update your config.ini as:
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO)
-    # register a dispatcher to handle message: here we register an echo dispatcher
-    #echo_handler = MessageHandler(Filters.text, echo)
-    #dispatcher.add_handler(echo_handler)
+# Enable logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+# set higher logging level for httpx to avoid all GET and POST requests being logged
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    # dispatcher for chatgpt
-    global chatgpt
-    #chatgpt = HKBU_ChatGPT()
-    chatgpt = HKBU_ChatGPT(config)
-    chatgpt_handler = MessageHandler(Filters.text & (~Filters.command), equiped_chatgpt)
-    dispatcher.add_handler(chatgpt_handler)
-    dispatcher.add_error_handler(error_handler)
-
-    # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("add", add))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-    dispatcher.add_handler(CommandHandler("hello", hello_command))
-    # To start the bot:
-    updater.start_polling()
-    updater.idle()
-
-    
-def error_handler(update, context):
-    logging.error(msg="Exception while handling an update:", exc_info=context.error)
-    update.message.reply_text('An error occurred.')
-    
-
-def hello_command(update, context):
-    try:
-        reply_message = "Good day, {0}!".format(context.args[0])
-        context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
-    except(IndexError, ValueError):
-        update.message.reply_text('can not say hello to you. please type /hello xxxx')
-
-def echo(update, context):
-    reply_message = update.message.text.upper()
-    logging.info("Update: " + str(update))
-    logging.info("context: " + str(context))
-    context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
-
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
-
-def help_command(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Helping you helping you.')
-
-
-def add(update, context):
-    """Send a message when the command /add is issued."""
-    try:
-        global redis1
-        logging.info(context.args[0])
-        msg = context.args[0] # /add keyword <-- this should store the keyword
-        redis1.incr(msg)
-        update.message.reply_text('You have said ' + msg + ' for ' +
-        redis1.get(msg).decode('UTF-8') + ' times.')
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /add <keyword>')
-
-def equiped_chatgpt(update, context):
-    global chatgpt
-    reply_message = chatgpt.submit(update.message.text)
-    print(reply_message)
-    logging.info("Update: " + str(update))
-    logging.info("context: " + str(context))
-    
-    context.bot.send_message(chat_id=update.effective_chat.id, text=reply_message)
-
-if __name__ == '__main__':
-    main()
-
-
-# In[ ]:
+logger = logging.getLogger(__name__)
 
 
 
+@dataclass
+class WebhookUpdate:
+    """Simple dataclass to wrap a custom update type"""
+
+    user_id: int
+    payload: str
 
 
-# In[ ]:
+class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
+    """
+    Custom CallbackContext class that makes `user_data` available for updates of type
+    `WebhookUpdate`.
+    """
+
+    @classmethod
+    def from_update(
+        cls,
+        update: object,
+        application: "Application",
+    ) -> "CustomContext":
+        if isinstance(update, WebhookUpdate):
+            return cls(application=application, user_id=update.user_id)
+        return super().from_update(update, application)
 
 
+async def start(update: Update, context: CustomContext) -> None:
+    """Display a message with instructions on how to use this bot."""
+    payload_url = html.escape(f"{URL}/submitpayload?user_id=<your user id>&payload=<payload>")
+    text = (
+        f"To check if the bot is still running, call <code>{URL}/healthcheck</code>.\n\n"
+        f"To post a custom update, call <code>{payload_url}</code>."
+    )
+    print(text)
+    await update.message.reply_html(text=text)
 
 
+async def webhook_update(update: WebhookUpdate, context: CustomContext) -> None:
+    """Handle custom updates."""
+    print(update)
+    print(context)
+    chat_member = await context.bot.get_chat_member(chat_id=update.user_id, user_id=update.user_id)
+    payloads = context.user_data.setdefault("payloads", [])
+    payloads.append(update.payload)
+    combined_payloads = "</code>\n• <code>".join(payloads)
+    text = (
+        f"The user {chat_member.user.mention_html()} has sent a new payload. "
+        f"So far they have sent the following payloads: \n\n• <code>{combined_payloads}</code>"
+    )
+    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
+
+
+async def main() -> None:
+    """Set up PTB application and a web application for handling the incoming requests."""
+    context_types = ContextTypes(context=CustomContext)
+    # Here we set updater to None because we want our custom webhook server to handle the updates
+    # and hence we don't need an Updater instance
+    application = (
+        Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
+    )
+
+    # register handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
+
+    # Pass webhook settings to telegram
+    await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
+
+    # Set up webserver
+    flask_app = Flask(__name__)
+
+    @flask_app.post("/telegram")  # type: ignore[misc]
+    async def telegram() -> Response:
+        """Handle incoming Telegram updates by putting them into the `update_queue`"""
+        print(request.json)
+        await application.bot.send_message(chat_id="6795865766", text="hello")
+        # not sure why the following code not working
+        #await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
+        return Response(status=HTTPStatus.OK)
+
+    @flask_app.route("/submitpayload", methods=["GET", "POST"])  # type: ignore[misc]
+    async def custom_updates() -> Response:
+        """
+        Handle incoming webhook updates by also putting them into the `update_queue` if
+        the required parameters were passed correctly.
+        """
+        try:
+            user_id = int(request.args["user_id"])
+            payload = request.args["payload"]
+        except KeyError:
+            abort(
+                HTTPStatus.BAD_REQUEST,
+                "Please pass both `user_id` and `payload` as query parameters.",
+            )
+        except ValueError:
+            abort(HTTPStatus.BAD_REQUEST, "The `user_id` must be a string!")
+
+        await application.update_queue.put(WebhookUpdate(user_id=user_id, payload=payload))
+        return Response(status=HTTPStatus.OK)
+
+    @flask_app.get("/healthcheck")  # type: ignore[misc]
+    async def health() -> Response:
+        """For the health endpoint, reply with a simple plain text message."""
+        response = make_response("The bot is still running fine :)", HTTPStatus.OK)
+        response.mimetype = "text/plain"
+        return response
+
+    webserver = uvicorn.Server(
+        config=uvicorn.Config(
+            app=WsgiToAsgi(flask_app),
+            port=PORT,
+            use_colors=False,
+            host="127.0.0.1",
+        )
+    )
+
+    # Run application and webserver together
+    async with application:
+        await application.start()
+        await webserver.serve()
+        await application.stop()
+
+
+asyncio.run(main())
