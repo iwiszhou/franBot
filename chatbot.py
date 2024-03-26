@@ -21,7 +21,7 @@ Connections                   ttl     opn     rt1     rt5     p50     p90
 ADMIN_CHAT_ID = 6795865766
 PORT = 8000
 TOKEN = "6485083231:AAEImiSj_-RdbW44DpwoqnXaFHQDDNdLgj4"  # nosec B105
-URL = "https://3090-182-239-120-87.ngrok-free.app"
+URL = "https://e3e3-182-239-120-87.ngrok-free.app"
 
 #!/usr/bin/env python
 # This program is dedicated to the public domain under the CC0 license.
@@ -43,6 +43,8 @@ import html
 import logging
 from dataclasses import dataclass
 from http import HTTPStatus
+from ChatGPT_HKBU import HKBU_ChatGPT
+import configparser
 
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
@@ -57,6 +59,8 @@ from telegram.ext import (
     ContextTypes,
     ExtBot,
     TypeHandler,
+    MessageHandler,
+    filters
 )
 
 # Enable logging
@@ -130,9 +134,25 @@ async def main() -> None:
         Application.builder().token(TOKEN).updater(None).context_types(context_types).build()
     )
 
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
     # register handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(TypeHandler(type=WebhookUpdate, callback=webhook_update))
+
+    # from previous lab
+    # dispatcher(application) for chatgpt
+    global chatgpt
+    #chatgpt = HKBU_ChatGPT()
+    chatgpt = HKBU_ChatGPT(config)
+    chatgpt_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), equiped_chatgpt)
+    application.add_handler(chatgpt_handler)
+    application.add_error_handler(error_handler)
+    # on different commands - answer in Telegram
+    #application.add_handler(CommandHandler("add", add))
+    application.add_handler(CommandHandler("help", hello_command))
+    #application.add_handler(CommandHandler("hello", hello_command))
 
     # Pass webhook settings to telegram
     await application.bot.set_webhook(url=f"{URL}/telegram", allowed_updates=Update.ALL_TYPES)
@@ -143,8 +163,19 @@ async def main() -> None:
     @flask_app.post("/telegram")  # type: ignore[misc]
     async def telegram() -> Response:
         """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        print(request.json)
-        await application.bot.send_message(chat_id="6795865766", text="hello")
+        # print(request.get_json())
+        print(request.get_data())
+        req_json = request.get_json()
+        print(req_json)
+        print(req_json['message']['text'])
+
+        incoming_text = req_json['message']['text']
+        incoming_chat_id = req_json['message']['from']['id']
+
+        global chatgpt
+        chatgpt_response = chatgpt.submit(incoming_text)
+
+        await application.bot.send_message(chat_id=incoming_chat_id, text=chatgpt_response)
         # not sure why the following code not working
         #await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
         return Response(status=HTTPStatus.OK)
@@ -191,5 +222,26 @@ async def main() -> None:
         await webserver.serve()
         await application.stop()
 
+
+def error_handler(update, context):
+    logging.error(msg="Exception while handling an update:", exc_info=context.error)
+    update.message.reply_text('An error occurred.')
+
+def equiped_chatgpt(update, context):
+    global chatgpt
+    reply_message = chatgpt.submit(update.message.text)
+    print(reply_message)
+    logging.info("Update: " + str(update))
+    logging.info("context: " + str(context))
+    
+    context.bot.send_message(chat_id=update.effective_chat.id, text=reply_message)
+
+
+def hello_command(update, context):
+    try:
+        reply_message = "Good day, {0}!".format(context.args[0])
+        context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
+    except(IndexError, ValueError):
+        update.message.reply_text('can not say hello to you. please type /hello xxxx')
 
 asyncio.run(main())
