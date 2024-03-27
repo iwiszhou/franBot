@@ -50,7 +50,7 @@ import uvicorn
 from asgiref.wsgi import WsgiToAsgi
 from flask import Flask, Response, abort, make_response, request
 
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup,KeyboardButton ,WebAppInfo
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -174,8 +174,11 @@ async def main() -> None:
 
         global chatgpt
         chatgpt_response = chatgpt.submit(incoming_text)
-
-        await application.bot.send_message(chat_id=incoming_chat_id, text=chatgpt_response)
+        kb = [
+                [KeyboardButton("Show me Google!", web_app=WebAppInfo("https://calixtemayoraz.gitlab.io/web-interfacer-bot/"))]
+            ]
+        await application.bot.send_message(chat_id=incoming_chat_id, text=chatgpt_response,
+             reply_markup=ReplyKeyboardMarkup(kb)                              )
         # not sure why the following code not working
         #await application.update_queue.put(Update.de_json(data=request.json, bot=application.bot))
         return Response(status=HTTPStatus.OK)
