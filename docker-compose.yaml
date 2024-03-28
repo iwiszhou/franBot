@@ -1,0 +1,60 @@
+version: '3'
+services: 
+  chatbot1: 
+    image: chatbot
+    environment: 
+      - TELEGRAM_ACCESS_TOKEN=<YOUR_OWN_TELEGRAM_TOKEN>
+      - REDIS_HOST=34.176.7.155
+      - REDIS_PASSWORD=comp7940
+      - REDIS_PORT=6379
+      - CHATGPT_BASICURL=https://chatgpt.hkbu.edu.hk/general/rest
+      - CHATGPT_MODELNAME=gpt-4-turbo
+      - CHATGPT_APIVERSION=2023-12-01-preview
+      - CHATGPT_ACCESS_TOKEN=<YOUR_OWN_CHATGPT_TOKEN>
+      - LOCALHOST=0.0.0.0
+      - LISTEN_PORT=5000
+      - URL_PATH=1
+      - CERT_PATH=nginx-selfsigned.crt
+      - SECRET_TOKEN=comp7940-group-al
+      - WEBHOOK_URL=https://<YOUR_OWN_SERVER_IP>/1
+    restart: always
+    container_name: chatbot1
+    networks:
+      - comp7940
+  chatbot2: 
+    image: chatbot
+    environment: 
+      - TELEGRAM_ACCESS_TOKEN=<YOUR_OWN_TELEGRAM_TOKEN>
+      - REDIS_HOST=34.176.7.155
+      - REDIS_PASSWORD=comp7940
+      - REDIS_PORT=6379
+      - CHATGPT_BASICURL=https://chatgpt.hkbu.edu.hk/general/rest
+      - CHATGPT_MODELNAME=gpt-4-turbo
+      - CHATGPT_APIVERSION=2023-12-01-preview
+      - CHATGPT_ACCESS_TOKEN=<YOUR_OWN_CHATGPT_TOKEN>
+      - LOCALHOST=0.0.0.0
+      - LISTEN_PORT=5001
+      - URL_PATH=2
+      - CERT_PATH=nginx-selfsigned.crt
+      - SECRET_TOKEN=comp7940-group-al
+      - WEBHOOK_URL=https://<YOUR_OWN_SERVER_IP>/1
+    restart: always
+    container_name: chatbot2
+    networks:
+      - comp7940
+  nginx: 
+    image: nginx-project
+    ports:
+      - "443:443"
+    restart: always
+    container_name: nginx
+    volumes: 
+      - /home/nginx/log:/var/log/nginx
+    networks:
+      - comp7940
+    depends_on: 
+      - chatbot1
+      - chatbot2
+networks:
+  comp7940:
+    driver: bridge

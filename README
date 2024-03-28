@@ -1,0 +1,10 @@
+1. Generate a Self-Signed Certificate:
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout nginx-selfsigned.key -out nginx-selfsigned.crt
+2. Copy nginx-selfsigned.key and nginx-selfsigned.crt to ~/nginx
+3. Copy nginx-selfsigned.crt to ~/chatbot
+4. cd ~/chatbot and then run
+    docker build -t chatbot .
+5. cd ~/nginx and then run
+    docker build -t nginx-project .
+6. Edit ~/docker-compose.yaml and fill in your telegram and chatgpt tokens
+7. Run docker-compose up -d

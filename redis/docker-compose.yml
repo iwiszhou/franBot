@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+    command: redis-server --requirepass "comp7940" --port 6379
+    volumes:
+      - type: volume
+        source: redis-volume
+        target: /data
+    restart: always
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    depends_on:
+      - redis
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=comp7940
+      - HTTP_USER=root
+      - HTTP_PASSWORD=comp7940
+    ports:
+      - "8081:8081"
+
+volumes:
+  redis-volume: {}
