@@ -13,6 +13,14 @@
     <meta name="MobileOptimized" content="176" />
     <meta name="HandheldFriendly" content="True" />
     <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
+
+    <style>
+      body,
+      html {
+        background-color: white;
+        color: #333;
+      }
+    </style>
   </head>
 
   <body>
@@ -69,14 +77,21 @@
 
       function renderWriteReview() {
         const [text, setText] = React.useState();
+        const [author, setAuthor] = React.useState();
         const [showName, setShowName] = React.useState();
         const handleOnClick = () => {
-          window.Telegram.WebApp.sendData(
-            JSON.stringify({
-              showName: showName,
-              review: text,
-            })
-          );
+          if (!text || !showName || !author) {
+            alert("You need to fill all the fields to submit your review.");
+            return;
+          }
+          const responseData = {
+            showName: showName,
+            review: text,
+            author: author,
+            key: `${new Date().getTime()}_${author}`,
+          };
+          console.log(responseData);
+          window.Telegram.WebApp.sendData(JSON.stringify(responseData));
         };
 
         return (
@@ -88,6 +103,15 @@
               value={showName}
               onChange={(e) => setShowName(e.target.value)}
             />
+
+            <h4>Your ame</h4>
+            <input
+              type="text"
+              maxlength={20}
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+            />
+
             <h4>Please share your short review</h4>
 
             <div>
