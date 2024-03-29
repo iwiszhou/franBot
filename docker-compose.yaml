@@ -2,6 +2,9 @@ version: '3'
 services: 
   chatbot1: 
     image: chatbot
+    build:
+      context: ./chatbot
+      dockerfile: ./Dockerfile
     environment: 
       - TELEGRAM_ACCESS_TOKEN=<YOUR_OWN_TELEGRAM_TOKEN>
       - REDIS_HOST=34.176.7.155
@@ -44,6 +47,9 @@ services:
       - comp7940
   nginx: 
     image: nginx-project
+    build:
+      context: ./nginx
+      dockerfile: ./Dockerfile
     ports:
       - "443:443"
     restart: always
