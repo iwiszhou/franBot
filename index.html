@@ -20,6 +20,14 @@
         background-color: white;
         color: #333;
       }
+      .simple-title {
+        margin: 0;
+      }
+      .submit-btn {
+        padding: 5px 10px;
+        background-color: green;
+        color: aliceblue;
+      }
     </style>
   </head>
 
@@ -96,24 +104,29 @@
 
         return (
           <div>
-            <h3>TV show name</h3>
-            <input
-              type="text"
-              maxlength={20}
-              value={showName}
-              onChange={(e) => setShowName(e.target.value)}
-            />
+            <h3 className="simple-title">TV show name</h3>
+            <div>
+              <input
+                type="text"
+                maxlength={20}
+                value={showName}
+                onChange={(e) => setShowName(e.target.value)}
+              />
+            </div>
+            <br />
 
-            <h4>Your ame</h4>
-            <input
-              type="text"
-              maxlength={20}
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-            />
+            <h4 className="simple-title">Your ame</h4>
+            <div>
+              <input
+                type="text"
+                maxlength={20}
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+              />
+            </div>
+            <br />
 
-            <h4>Please share your short review</h4>
-
+            <h4 className="simple-title">Please share your short review</h4>
             <div>
               <textarea
                 value={text}
@@ -122,9 +135,20 @@
                 onChange={(e) => setText(e.target.value)}
               />
             </div>
-            <h6>You only can share up to 50 words review</h6>
+            <h6 className="simple-title">
+              You only can share up to 50 words review
+            </h6>
             <br />
-            <button onClick={handleOnClick}>Submit</button>
+            <button onClick={handleOnClick} className="submit-btn">
+              Submit
+            </button>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
           </div>
         );
       }
