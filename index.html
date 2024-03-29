@@ -154,18 +154,24 @@
       }
 
       function renderReadReview() {
-        const data = [
-          {
-            id: 111,
-            showName: "Hello",
-            text: "Love it",
-          },
-          {
-            id: 222,
-            showName: "Hello",
-            text: "Love it",
-          },
-        ];
+        const [reviews, setReviews] = React.useState([]);
+        React.useEffect(() => {
+          async function fetchData() {
+            const response = await fetch(
+              "https://tv-show-g6ejee5era-uw.a.run.app/getAllReviews"
+            );
+            const data = await response.json();
+            if (!data) return;
+            let reviews = [];
+            Object.keys(data).forEach((key) => {
+              reviews.push(JSON.parse(data[key]));
+            });
+            console.log(reviews);
+            setReviews(reviews);
+          }
+          fetchData();
+        }, []);
+
         return (
           <div
             style={{
@@ -174,7 +180,7 @@
               alignItems: "center",
             }}
           >
-            {data.map((d) => (
+            {reviews.map((d) => (
               <div key={d.id} style={{ marginBottom: "20px" }}>
                 <div
                   style={{
@@ -183,10 +189,10 @@
                     letterSpacing: "1px",
                   }}
                 >
-                  TV Show Name {d.text}
+                  TV Show Name : {d.showName}
                 </div>
-                <div>Share by: {d.id}</div>
-                <div>Review: {d.text}</div>
+                <div>Share by : {d.author}</div>
+                <div>Review : {d.review}</div>
               </div>
             ))}
           </div>
@@ -197,6 +203,7 @@
         const [selectedValue, setSelectedValue] = React.useState("");
         const readDiv = renderReadReview();
         const writeDiv = renderWriteReview();
+
         return (
           <div style={{ textAlign: "center", color: "#333" }}>
             <h2 style={{ textAlign: "center" }}>
