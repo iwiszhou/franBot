@@ -1,0 +1,231 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Computing Project</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="MobileOptimized" content="176" />
+    <meta name="HandheldFriendly" content="True" />
+    <script src="https://telegram.org/js/telegram-web-app.js?1"></script>
+
+    <style>
+      body,
+      html {
+        background-color: white;
+        color: #333;
+      }
+      .simple-title {
+        margin: 0;
+      }
+      .submit-btn {
+        padding: 5px 10px;
+        background-color: green;
+        color: aliceblue;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/babel-standalone@6/babel.js"
+    ></script>
+
+    <script type="text/babel">
+      function renderRadioButton(selectedValue, setSelectedValue) {
+        const handleRadioChange = (value) => {
+          setSelectedValue(value);
+        };
+        return (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <input
+                type="radio"
+                id="read"
+                value="read"
+                checked={selectedValue === "read"}
+                onChange={() => handleRadioChange("read")}
+              />
+              <label htmlFor="read">I want to Read review</label>
+            </div>
+            <div style={{ marginTop: "15px" }}>
+              <input
+                type="radio"
+                id="write"
+                value="write"
+                checked={selectedValue === "write"}
+                onChange={() => handleRadioChange("write")}
+              />
+              <label htmlFor="write">I want to Write review</label>
+            </div>
+          </div>
+        );
+      }
+
+      function renderWriteReview() {
+        const [text, setText] = React.useState();
+        const [author, setAuthor] = React.useState();
+        const [showName, setShowName] = React.useState();
+        const handleOnClick = () => {
+          if (!text || !showName || !author) {
+            alert("You need to fill all the fields to submit your review.");
+            return;
+          }
+          const responseData = {
+            showName: showName,
+            review: text,
+            author: author,
+            key: `${new Date().getTime()}_${author}`,
+          };
+          console.log(responseData);
+          window.Telegram.WebApp.sendData(JSON.stringify(responseData));
+        };
+
+        return (
+          <div>
+            <h3 className="simple-title">TV show name</h3>
+            <div>
+              <input
+                type="text"
+                maxLength={20}
+                value={showName}
+                onChange={(e) => setShowName(e.target.value)}
+              />
+            </div>
+            <br />
+
+            <h4 className="simple-title">Your name</h4>
+            <div>
+              <input
+                type="text"
+                maxLength={20}
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+              />
+            </div>
+            <br />
+
+            <h4 className="simple-title">Please share your short review</h4>
+            <div>
+              <textarea
+                value={text}
+                rows={5}
+                maxLength={50}
+                onChange={(e) => setText(e.target.value)}
+              />
+            </div>
+            <h6 className="simple-title">
+              You only can share up to 50 words review
+            </h6>
+            <br />
+            <button onClick={handleOnClick} className="submit-btn">
+              Submit
+            </button>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+          </div>
+        );
+      }
+
+      function renderReadReview() {
+        const [reviews, setReviews] = React.useState([]);
+        React.useEffect(() => {
+          async function fetchData() {
+            const response = await fetch(
+              "https://<YOUR_VM_IP>/getAllReviews"
+            );
+            const data = await response.json();
+            if (!data) return;
+            let reviews = [];
+            Object.keys(data).forEach((key) => {
+              reviews.push(JSON.parse(data[key]));
+            });
+            console.log(reviews);
+            setReviews(reviews);
+          }
+          fetchData();
+        }, []);
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {reviews.map((d) => (
+              <div key={d.id} style={{ marginBottom: "20px" }}>
+                <div
+                  style={{
+                    textDecoration: "underline",
+                    fontWeight: "bolder",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  TV Show Name : {d.showName}
+                </div>
+                <div>Share by : {d.author}</div>
+                <div>Review : {d.review}</div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      function App() {
+        const [selectedValue, setSelectedValue] = React.useState("");
+        const readDiv = renderReadReview();
+        const writeDiv = renderWriteReview();
+
+        return (
+          <div style={{ textAlign: "center", color: "#333" }}>
+            <h2 style={{ textAlign: "center" }}>
+              Reading/Writing a TV show review
+            </h2>
+            {renderRadioButton(selectedValue, setSelectedValue)}
+            <br />
+            <hr></hr>
+            <br />
+            {selectedValue === "write" &&  writeDiv}
+            {selectedValue === "read" && readDiv}
+          </div>
+        );
+      }
+
+      // Render the component to the DOM
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    </script>
+  </body>
+</html>

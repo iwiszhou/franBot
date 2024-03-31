@@ -1,5 +1,35 @@
-version: '3'
+version: '3.7'
 services: 
+  redis:
+    image: redis:latest
+    env_file:
+      - .env
+    restart: always
+    container_name: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port ${REDIS_INTERNAL_PORT}
+    volumes:
+      - type: volume
+        source: redis-volume
+        target: /data
+    networks:
+      - comp7940
+  api-server: 
+    image: api-server
+    build:
+      context: ./apis
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment: 
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=${REDIS_INTERNAL_PORT}
+    restart: always
+    container_name: api-server
+    depends_on: 
+      - redis
+    networks:
+      - comp7940
   chatbot1: 
     image: chatbot
     build:
@@ -11,7 +41,7 @@ services:
       - TELEGRAM_ACCESS_TOKEN=${TELEGRAM_ACCESS_TOKEN}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=${REDIS_INTERNAL_PORT}
       - CHATGPT_BASICURL=${CHATGPT_BASICURL}
       - CHATGPT_MODELNAME=${CHATGPT_MODELNAME}
       - CHATGPT_APIVERSION=${CHATGPT_APIVERSION}
@@ -24,6 +54,9 @@ services:
       - CERT_PATH=nginx-selfsigned.crt
     restart: always
     container_name: chatbot1
+    depends_on: 
+      - redis
+      - api-server
     networks:
       - comp7940
   chatbot2: 
@@ -34,7 +67,7 @@ services:
       - TELEGRAM_ACCESS_TOKEN=${TELEGRAM_ACCESS_TOKEN}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=${REDIS_INTERNAL_PORT}
       - CHATGPT_BASICURL=${CHATGPT_BASICURL}
       - CHATGPT_MODELNAME=${CHATGPT_MODELNAME}
       - CHATGPT_APIVERSION=${CHATGPT_APIVERSION}
@@ -47,6 +80,25 @@ services:
       - CERT_PATH=nginx-selfsigned.crt
     restart: always
     container_name: chatbot2
+    depends_on: 
+      - redis
+      - api-server
+      - chatbot1
+    networks:
+      - comp7940
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: always
+    container_name: redis-commander
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - HTTP_USER=${REDIS_HTTP_USER}
+      - HTTP_PASSWORD=${REDIS_PASSWORD}
     networks:
       - comp7940
   nginx: 
@@ -56,6 +108,7 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "443:443"
+      - "80:80"
     restart: always
     container_name: nginx
     volumes: 
@@ -63,8 +116,14 @@ services:
     networks:
       - comp7940
     depends_on: 
+      - redis-commander
+      - api-server
       - chatbot1
       - chatbot2
+
 networks:
   comp7940:
     driver: bridge
+
+volumes:
+  redis-volume:

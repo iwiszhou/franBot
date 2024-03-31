@@ -22,7 +22,6 @@ bot.
 import os
 import redis
 import logging
-import configparser
 from ChatGPT_HKBU import HKBU_ChatGPT
 import json
 import time
@@ -53,10 +52,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
     logging.info("calling start function\nUpdate: {}".format(str(update)))
     user = update.effective_user
-    # await update.message.reply_html(
-    #     rf"Hi {user.mention_html()}!",
-    #     reply_markup=ForceReply(selective=True),
-    # )
     response_msg = 'Hi there! \n '
     response_msg += 'You can /review to start to read/write TV show review! \n'
     response_msg +='You can also /allReviews to quickly review! \n'
@@ -81,7 +76,6 @@ async def equiped_chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chatgpt = HKBU_ChatGPT()
     reply_message = chatgpt.submit(update.message.text)
     await update.message.reply_text(getMessageWithBotName(reply_message))
-    #context.bot.send_message(chat_id=update.effective_chat.id, text=reply_message)
 
 async def add(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /add is issued."""
@@ -97,17 +91,19 @@ async def add(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text('Usage: /add <keyword>')
 
 async def launch_web_ui(update: Update, callback: CallbackContext):
+    logging.info("calling launch_web_ui function\nUpdate: {}".format(str(update)))
     # display our web-app!
     kb = [
         [KeyboardButton(
             "Start to read/write TV show review",
-            web_app=WebAppInfo('https://iwiszhou.github.io/franBot/index.html')
+            web_app=WebAppInfo(url="https://iwiszhou.github.io/franBot/index.html")
         )]
     ]
     await update.message.reply_text(getMessageWithBotName("Launching the TV show review..."), reply_markup=ReplyKeyboardMarkup(kb))
 
 
 async def web_app_data(update: Update, context: CallbackContext):
+    logging.info("calling web_app_data function\nUpdate: {}".format(str(update)))
     try:
         global redisClient
         data = json.loads(update.message.web_app_data.data)
@@ -120,12 +116,11 @@ async def web_app_data(update: Update, context: CallbackContext):
         await update.message.reply_text(getMessageWithBotName('Unable to process the save review feature. Please try later'))
 
 async def show_all_reviews(update: Update, context: CallbackContext):
+    logging.info("calling show_all_reviews function\nUpdate: {}".format(str(update)))
     try:
         global redisClient
         # get all review data from redis
         data = redisClient.hgetall("tvReview")
-        # print("redis data",data)
-        # await update.message.reply_text(json.dumps(data))
         html_string = '<b>'+ getMessageWithBotName("All reviews:") + '</b>\n'
          # Parse JSON data and construct HTML string
         for key, value in data.items():
@@ -142,6 +137,7 @@ async def show_all_reviews(update: Update, context: CallbackContext):
         await update.message.reply_text('Unable to process the get all reviews. Please try later')
 
 async def share_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("calling share_video function\nUpdate: {}".format(str(update)))
     user = update.effective_user
     print(user['first_name'])
     msg = getMessageWithBotName(rf"Hi {user.mention_html()}! You can paste your Youtube video link below to share your video to others")
@@ -152,6 +148,7 @@ async def share_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     print("video resp",response_data)
 
 async def handle_video_response(update:Update, context: CallbackContext):
+    logging.info("calling handle_video_response function\nUpdate: {}".format(str(update)))
     try:
         user = update.effective_user
         author = user['first_name'] + " " + user['last_name']
@@ -174,13 +171,12 @@ async def handle_video_response(update:Update, context: CallbackContext):
         await update.message.reply_text(getMessageWithBotName('Unable to process the save video link. Please try later'))
 
 async def show_all_videos(update: Update, context: CallbackContext):
+    logging.info("calling show_all_videos function\nUpdate: {}".format(str(update)))
     try:
         global redisClient
         # get all review data from redis
         data = redisClient.hgetall("videos")
         print(data)
-        # print("redis data",data)
-        # await update.message.reply_text(json.dumps(data))
         html_string = '<b>'+ getMessageWithBotName("All videos:") + '</b>\n'
          # Parse JSON data and construct HTML string
         for key, value in data.items():
