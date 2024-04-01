@@ -8,7 +8,6 @@ This repository makes use of container technologies to put the above mentioned s
 **API-server** serve as a backend server providing resources for HTML pages
 
 
-
 ## Deployment steps
 
 1. Generate a Self-Signed Certificate
