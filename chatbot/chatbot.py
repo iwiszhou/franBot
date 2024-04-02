@@ -96,7 +96,7 @@ async def launch_web_ui(update: Update, callback: CallbackContext):
     kb = [
         [KeyboardButton(
             "Start to read/write TV show review",
-            web_app=WebAppInfo(url="https://iwiszhou.github.io/franBot/index.html")
+            web_app=WebAppInfo(url="https://kitholt.github.io/franBot/index.html")
         )]
     ]
     await update.message.reply_text(getMessageWithBotName("Launching the TV show review..."), reply_markup=ReplyKeyboardMarkup(kb))
