@@ -1,0 +1,23 @@
+name: Remote update execution
+on:
+  push:
+    branches: [ "webhook-nginx" ]
+    
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.GCP_SERVER_IP}}
+        username: ${{ secrets.GCP_SERVER_USERNAME_DEPLOY }}
+        key: ${{ secrets.GCP_SERVER_KEY_DEPLOY}}
+        port: 22
+        script: |
+            sudo cd /home/deploy/project7940
+            sudo git init
+            sudo git pull git@github.com:iwiszhou/franBot.git
+            sudo docker-compose down
+            sudo docker-compose up -d
