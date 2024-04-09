@@ -1,7 +1,7 @@
 from flask import Flask
 import redis
 import os
-from flask_cors import CORS, cross_origin
+#from flask_cors import CORS, cross_origin
 
 global redisClient
 redisClient = redis.Redis(host=(os.environ['REDIS_HOST']),
@@ -10,12 +10,12 @@ port=(os.environ['REDIS_PORT']),
 decode_responses=True)
 
 app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+#cors = CORS(app)
+#app.config['CORS_HEADERS'] = 'Content-Type'
 
 # the minimal Flask application
 @app.route('/getAllReviews')
-@cross_origin()
+#@cross_origin()
 def say_hello():
     try:
         global redisClient
